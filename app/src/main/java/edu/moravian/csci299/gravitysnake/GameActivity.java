@@ -2,6 +2,10 @@ package edu.moravian.csci299.gravitysnake;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -17,18 +21,56 @@ import android.view.WindowManager;
  * and the fullscreen handling is done as well. You only need to deal with
  * setting the difficulty and the sensors.
  */
-public class GameActivity extends AppCompatActivity {
+public class GameActivity extends AppCompatActivity implements SensorEventListener {
+    private SensorManager sensorManager;
+    private Sensor gravitySensor;
+    private SnakeGameView snakeGameView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         hideSystemUI(); // forces it to be fullscreen
+
+        //initiating sensor manager and sensors
+        sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        snakeGameView = findViewById(R.id.snakeGameView);
+        snakeGameView.setDifficulty(5);
+        snakeGameView.getSnakeGame().startGame(1080,1920); // how do you get the screen width??
     }
 
+    /**
+     * When this method is called the gravity sensor is registered by the
+     * SensorManager
+     */
+    @Override
+    protected void onResume() {
+        sensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_UI);
 
+        super.onResume();
+    }
 
+    /**
+     * When this method is called the gravity sensor is unregistered by the
+     * SensorManager
+     */
+    @Override
+    protected void onPause() {
+        sensorManager.unregisterListener(this, gravitySensor);
+        super.onPause();
+    }
 
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        snakeGameView.onSensorChanged(event);
+    }
 
+    /** Does nothing but must be provided. */
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 
     ///// Don't worry about the rest of this code - it deals with making a fullscreen app /////
 
@@ -64,4 +106,6 @@ public class GameActivity extends AppCompatActivity {
         timeoutHandler.removeCallbacks(hideUIRunnable);
         timeoutHandler.postDelayed(hideUIRunnable, 2000);
     }
+
+
 }

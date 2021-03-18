@@ -1,5 +1,4 @@
 package edu.moravian.csci299.gravitysnake;
-
 import android.graphics.PointF;
 
 import java.util.ArrayList;

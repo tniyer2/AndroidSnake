@@ -104,7 +104,7 @@ public class SnakeGame {
         this.height = height;
         snake = new Snake(new PointF(width / 2f, height / 2f), dpToPxFactor, startingLength);
         speed = initialSpeed;
-        score = 5;
+        score = 0;
         walls.clear();
         moveFood();
         gameOver = false;
@@ -236,7 +236,7 @@ public class SnakeGame {
 
         // Game over if the snake is touched
         if (snake.bodyIntersectsItem(pt, TOUCH_SIZE_DP)) {
-            if (gameOver) { return false; }
+            gameOver = true;
             return false;
         }
 

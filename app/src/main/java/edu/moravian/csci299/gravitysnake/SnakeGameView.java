@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -24,9 +25,11 @@ import androidx.annotation.Nullable;
  * a few methods to this class.
  */
 public class SnakeGameView extends View implements SensorEventListener {
+
     /** The paints and drawables used for the different parts of the game */
     // TODO: you will need to add many of these (this one is provided as an example for text paint)
     private final Paint scorePaint = new Paint();
+    private final Paint snakePaint = new Paint(); // need to add more paint
 
     /** The metrics about the display to convert from dp and sp to px */
     private final DisplayMetrics displayMetrics;
@@ -56,6 +59,9 @@ public class SnakeGameView extends View implements SensorEventListener {
         scorePaint.setTextAlign(Paint.Align.CENTER);
         scorePaint.setTextSize(spToPx(24)); // use sp for text
         scorePaint.setFakeBoldText(true);
+
+        snakePaint.setColor(Color.GREEN);
+
     }
 
     /**
@@ -85,7 +91,10 @@ public class SnakeGameView extends View implements SensorEventListener {
      * @param difficulty the new difficulty for the game
      */
     public void setDifficulty(int difficulty) {
-        // TODO: may need to set lots of things here to change the game's difficulty
+        // TODO: may need to set lots of things here to change the game's difficulty. Subject to change
+        snakeGame.setInitialSpeed(difficulty * 1.0);
+        snakeGame.setStartingLength(difficulty * 20);
+        snakeGame.setMovementDirection(90.0);
     }
 
     /**
@@ -107,15 +116,27 @@ public class SnakeGameView extends View implements SensorEventListener {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        postInvalidateOnAnimation(); // automatically invalidate every frame so we get continuous playback
-
         // TODO: update the game and draw the view
+        super.onDraw(canvas);
+        postInvalidateOnAnimation();// automatically invalidate every frame so we get continuous playback
+        if(snakeGame.update()){
+            for(PointF p: snakeGame.getSnakeBodyLocations()){
+                canvas.drawCircle(p.x, p.y, dpToPx(10), snakePaint); //not sure how to decide what the radius should be
+            }
+        }
     }
 
+    /**
+     * The snake's trajectory is modified by the change in the gravity sensor.
+     * @param event the change in the sensor to be used to change the scale of the arrowView.
+     */
     @Override
     public void onSensorChanged(SensorEvent event) {
         // TODO
+        double x = event.values[0];
+        double y = event.values[1];
+        snakeGame.setMovementDirection(Math.atan2(y, -x));
+
     }
 
     /** Does nothing but must be provided. */
