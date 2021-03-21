@@ -2,12 +2,14 @@ package edu.moravian.csci299.gravitysnake;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -32,12 +34,15 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_game);
         hideSystemUI(); // forces it to be fullscreen
 
+        Intent intent = getIntent();
+        int difficulty = intent.getIntExtra("level", 0);
+        Log.d("From GameActivity", Integer.toString(difficulty));
+
         //initiating sensor manager and sensors
         sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
         gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         snakeGameView = findViewById(R.id.snakeGameView);
-        snakeGameView.setDifficulty(5);
-        snakeGameView.getSnakeGame().startGame(1080,1920); // how do you get the screen width??
+        snakeGameView.setDifficulty(difficulty + 1);
     }
 
     /**
@@ -106,6 +111,4 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
         timeoutHandler.removeCallbacks(hideUIRunnable);
         timeoutHandler.postDelayed(hideUIRunnable, 2000);
     }
-
-
 }
