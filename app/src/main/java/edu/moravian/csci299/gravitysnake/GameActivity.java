@@ -9,7 +9,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -24,9 +23,11 @@ import android.view.WindowManager;
  * setting the difficulty and the sensors.
  */
 public class GameActivity extends AppCompatActivity implements SensorEventListener {
+    private SnakeGameView snakeGameView;
+
     private SensorManager sensorManager;
     private Sensor gravitySensor;
-    private SnakeGameView snakeGameView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,11 +37,10 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
 
         Intent intent = getIntent();
         int difficulty = intent.getIntExtra("level", 0);
-        Log.d("From GameActivity", Integer.toString(difficulty));
 
-        //initiating sensor manager and sensors
         sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
         gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+
         snakeGameView = findViewById(R.id.snakeGameView);
         snakeGameView.setDifficulty(difficulty + 1);
     }
@@ -50,9 +50,9 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
      * SensorManager
      */
     @Override
-    protected void onResume() {
+    protected void onResume()
+    {
         sensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_UI);
-
         super.onResume();
     }
 
@@ -61,21 +61,21 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
      * SensorManager
      */
     @Override
-    protected void onPause() {
+    protected void onPause()
+    {
         sensorManager.unregisterListener(this, gravitySensor);
         super.onPause();
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event) {
+    public void onSensorChanged(SensorEvent event)
+    {
         snakeGameView.onSensorChanged(event);
     }
 
     /** Does nothing but must be provided. */
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
     ///// Don't worry about the rest of this code - it deals with making a fullscreen app /////
 

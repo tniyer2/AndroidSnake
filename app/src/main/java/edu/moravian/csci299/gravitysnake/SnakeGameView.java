@@ -1,5 +1,6 @@
 package edu.moravian.csci299.gravitysnake;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,6 +11,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -27,9 +29,10 @@ import androidx.annotation.Nullable;
 public class SnakeGameView extends View implements SensorEventListener {
 
     /** The paints and drawables used for the different parts of the game */
-    // TODO: you will need to add many of these (this one is provided as an example for text paint)
     private final Paint scorePaint = new Paint();
-    private final Paint snakePaint = new Paint(); // need to add more paint
+    private final Paint snakePaint = new Paint();
+    private final Paint wallPaint = new Paint();
+    private final Paint foodPaint = new Paint();
 
     /** The metrics about the display to convert from dp and sp to px */
     private final DisplayMetrics displayMetrics;
@@ -39,6 +42,7 @@ public class SnakeGameView extends View implements SensorEventListener {
 
     // Required constructors for making your own view that can be placed in a layout
     public SnakeGameView(Context context) { this(context, null);  }
+
     public SnakeGameView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
@@ -61,7 +65,8 @@ public class SnakeGameView extends View implements SensorEventListener {
         scorePaint.setFakeBoldText(true);
 
         snakePaint.setColor(Color.GREEN);
-
+        wallPaint.setColor(Color.BLUE);
+        foodPaint.setColor(Color.RED);
     }
 
     /**
@@ -95,6 +100,7 @@ public class SnakeGameView extends View implements SensorEventListener {
         snakeGame.setInitialSpeed(difficulty * 1.0);
         snakeGame.setStartingLength(difficulty * 20);
         snakeGame.setMovementDirection(90.0);
+        snakeGame.setWallPlacementProbability(1.0f / 60.0f);
     }
 
     /**
@@ -116,14 +122,36 @@ public class SnakeGameView extends View implements SensorEventListener {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // TODO: update the game and draw the view
         super.onDraw(canvas);
-        postInvalidateOnAnimation();// automatically invalidate every frame so we get continuous playback
-        if(snakeGame.update()){
-            for(PointF p: snakeGame.getSnakeBodyLocations()){
-                canvas.drawCircle(p.x, p.y, dpToPx(10), snakePaint); //not sure how to decide what the radius should be
+        postInvalidateOnAnimation(); // automatically invalidate every frame so we get continuous playback
+
+        if (snakeGame.update())
+        {
+            for (PointF p: snakeGame.getSnakeBodyLocations())
+            {
+                canvas.drawCircle(p.x, p.y, dpToPx(Snake.BODY_PIECE_SIZE_DP), snakePaint);
             }
+
+            for (PointF w: snakeGame.getWallLocations())
+            {
+                float diff = dpToPx(SnakeGame.WALL_SIZE_DP);
+                canvas.drawRect(w.x - diff, w.y - diff, w.x + diff, w.y + diff, wallPaint);
+            }
+
+            PointF foodLocation = snakeGame.getFoodLocation();
+            canvas.drawCircle(foodLocation.x, foodLocation.y, dpToPx(SnakeGame.FOOD_SIZE_DP), foodPaint);
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        PointF point = new PointF(event.getX(), event.getY());
+        if (!snakeGame.touched(point))
+        {
+            ((Activity)getContext()).finish();
+        }
+
+        return true;
     }
 
     /**
@@ -131,12 +159,12 @@ public class SnakeGameView extends View implements SensorEventListener {
      * @param event the change in the sensor to be used to change the scale of the arrowView.
      */
     @Override
-    public void onSensorChanged(SensorEvent event) {
+    public void onSensorChanged(SensorEvent event)
+    {
         // TODO
         double x = event.values[0];
         double y = event.values[1];
         snakeGame.setMovementDirection(Math.atan2(y, -x));
-
     }
 
     /** Does nothing but must be provided. */

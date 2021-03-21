@@ -1,5 +1,7 @@
 package edu.moravian.csci299.gravitysnake;
 
+import android.content.SharedPreferences;
+
 import androidx.lifecycle.ViewModel;
 
 /**
@@ -10,8 +12,8 @@ import androidx.lifecycle.ViewModel;
 public class GameModel extends ViewModel {
     public final int NUM_LEVELS = 5;
 
-    public int currentLevel = 0;
-    public final int[] scores = new int[NUM_LEVELS];
+    private int currentLevel = 0;
+    private final int[] highScores = new int[NUM_LEVELS];
 
     /**
      * Getter for currentLevel.
@@ -40,7 +42,7 @@ public class GameModel extends ViewModel {
     public int getHighScore(int level)
     {
         checkIfIndexIsInBounds(level);
-        return scores[level];
+        return highScores[level];
     }
 
     /**
@@ -51,7 +53,7 @@ public class GameModel extends ViewModel {
     public void setHighScore(int level, int value)
     {
         checkIfIndexIsInBounds(level);
-        scores[level] = value;
+        highScores[level] = value;
     }
 
     /**
