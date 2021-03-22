@@ -2,6 +2,7 @@ package edu.moravian.csci299.gravitysnake;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -39,6 +40,8 @@ public class SnakeGameView extends View implements SensorEventListener {
 
     /** The snake game for the logic behind this view */
     private final SnakeGame snakeGame;
+
+    private int gameDifficulty;
 
     // Required constructors for making your own view that can be placed in a layout
     public SnakeGameView(Context context) { this(context, null);  }
@@ -97,10 +100,15 @@ public class SnakeGameView extends View implements SensorEventListener {
      */
     public void setDifficulty(int difficulty) {
         // TODO: may need to set lots of things here to change the game's difficulty. Subject to change
+        gameDifficulty = difficulty;
+        difficulty ++;
         snakeGame.setInitialSpeed(difficulty * 1.0);
         snakeGame.setStartingLength(difficulty * 20);
-        snakeGame.setMovementDirection(90.0);
+        snakeGame.setMovementDirection(270.0);
+        snakeGame.setSpeedIncreasePerFood(difficulty * 0.1);
         snakeGame.setWallPlacementProbability(1.0f / 60.0f);
+        snakeGame.setLengthIncreasePerFood(difficulty);
+
     }
 
     /**
@@ -134,13 +142,14 @@ public class SnakeGameView extends View implements SensorEventListener {
 
             for (PointF w: snakeGame.getWallLocations())
             {
-                float diff = dpToPx(SnakeGame.WALL_SIZE_DP);
+                float diff = dpToPx(SnakeGame.WALL_SIZE_DP/2);
                 canvas.drawRect(w.x - diff, w.y - diff, w.x + diff, w.y + diff, wallPaint);
             }
 
             PointF foodLocation = snakeGame.getFoodLocation();
             canvas.drawCircle(foodLocation.x, foodLocation.y, dpToPx(SnakeGame.FOOD_SIZE_DP), foodPaint);
         }
+        canvas.drawText("Score: " + snakeGame.getScore(), spToPx(displayMetrics.widthPixels/4f), spToPx(20.0f),  scorePaint);
     }
 
     @Override
@@ -148,7 +157,12 @@ public class SnakeGameView extends View implements SensorEventListener {
         PointF point = new PointF(event.getX(), event.getY());
         if (!snakeGame.touched(point))
         {
-            ((Activity)getContext()).finish();
+            Activity context = (Activity) getContext();
+            Intent intent = new Intent();
+            intent.putExtra("level", gameDifficulty);
+            intent.putExtra("score", snakeGame.getScore());
+            context.setResult(Activity.RESULT_OK, intent);
+            context.finish();
         }
 
         return true;

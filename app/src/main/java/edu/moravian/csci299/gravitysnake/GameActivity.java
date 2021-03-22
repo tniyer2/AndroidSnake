@@ -1,5 +1,6 @@
 package edu.moravian.csci299.gravitysnake;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -42,7 +43,7 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
         gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
 
         snakeGameView = findViewById(R.id.snakeGameView);
-        snakeGameView.setDifficulty(difficulty + 1);
+        snakeGameView.setDifficulty(difficulty);
     }
 
     /**
@@ -76,6 +77,7 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
     /** Does nothing but must be provided. */
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+
 
     ///// Don't worry about the rest of this code - it deals with making a fullscreen app /////
 

@@ -1,5 +1,6 @@
 package edu.moravian.csci299.gravitysnake;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -95,4 +96,12 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     /** Does nothing but must be provided. */
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {}
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        assert data != null;
+        gameModel.setHighScore(data.getIntExtra("level", 0), data.getIntExtra("score", 0));
+
+    }
 }
