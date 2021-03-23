@@ -2,23 +2,31 @@ package edu.moravian.csci299.gravitysnake;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetFileDescriptor;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.SeekBar;
+
+import java.io.IOException;
 
 /**
  * This class is the StartActivity. It gets created in the beginning activity_start layout.
  */
 public class StartActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
     private GameModel gameModel;
+    private MediaPlayer mediaPlayer;
     private SharedPreferences preferences;
+
 
     /**
      * Initializes gameModel, the start Button, and the level select SeekBar.
@@ -30,6 +38,9 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         setContentView(R.layout.activity_start);
 
         gameModel = (new ViewModelProvider(this)).get(GameModel.class);
+
+
+
         preferences = getPreferences(Context.MODE_PRIVATE);
         for (int i = 0; i < gameModel.NUM_LEVELS; i++)
         {
@@ -47,6 +58,34 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         bar.setOnSeekBarChangeListener(this);
         gameModel.setCurrentLevel(bar.getProgress());
 
+
+        //set up for music, mediaPlayer and music switch
+        mediaPlayer = new MediaPlayer();
+        setAudioResource();
+        SwitchCompat musicSwitch = findViewById(R.id.musicSwitch);
+        musicSwitch.setChecked(true);
+        musicSwitch.setText(R.string.music);
+        musicSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    mediaPlayer.start();
+                }
+                else{
+                    mediaPlayer.pause();
+                }
+            }
+        });
+
+    }
+
+
+    /** When the activity stops, we stop the media player. */
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mediaPlayer.release();
+        mediaPlayer = null;
     }
 
     @Override
@@ -76,6 +115,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         startActivity(intent);
     }
 
+
     /**
      * Called when level select SeekBar's progress changes.
      * Sets the gameModel's current level to the new progress.
@@ -103,5 +143,20 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         assert data != null;
         gameModel.setHighScore(data.getIntExtra("level", 0), data.getIntExtra("score", 0));
 
+    }
+
+    private void setAudioResource() {
+        AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.booamf);
+        if (afd != null) {
+            try {
+                mediaPlayer.reset();
+                mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                mediaPlayer.prepare();
+                afd.close();
+                mediaPlayer.start();
+            } catch (IOException ex) {
+                Log.e("MainActivity", "set audio resource failed:", ex);
+            }
+        }
     }
 }
