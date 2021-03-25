@@ -110,7 +110,11 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 
         int level = data.getIntExtra("level", 0);
         int score = data.getIntExtra("score", 0);
+        Log.d("StartActivity", "OnActivityResult, level: " + level);
+        Log.d("StartActivity", "OnActivityResult, score: " + score);
+
         setHighScore(level, score);
+        setLevelAndScoreText();
     }
 
     private int getHighScore(int level) {
