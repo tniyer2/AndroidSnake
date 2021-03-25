@@ -35,20 +35,15 @@ import androidx.core.content.ContextCompat;
 public class SnakeGameView extends View implements SensorEventListener {
     private SharedPreferences preferences;
 
-    private boolean hasGameEnded = false;
-    private int frames = 0;
-
     /** The paints and drawables used for the different parts of the game */
     private final Paint scorePaint = new Paint();
     private final Paint snakePaint = new Paint();
-    private final Paint wallPaint = new Paint();
-    private final Paint foodPaint = new Paint();
-
 
     /** The metrics about the display to convert from dp and sp to px */
     private final DisplayMetrics displayMetrics;
 
-    Drawable snakeHead;// clean up
+    /** Drawables for the game */
+    Drawable snakeHead;
     Drawable mouse;
     Drawable grenade;
 
@@ -62,7 +57,7 @@ public class SnakeGameView extends View implements SensorEventListener {
 
     public SnakeGameView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        preferences = ((Activity)context).getPreferences(Context.MODE_PRIVATE);
+        preferences = ((Activity)context).getSharedPreferences("snake_game", Context.MODE_PRIVATE);
 
         // Get the metrics for the display so we can later convert between dp, sp, and px
         displayMetrics = context.getResources().getDisplayMetrics();
@@ -83,8 +78,6 @@ public class SnakeGameView extends View implements SensorEventListener {
         scorePaint.setFakeBoldText(true);
 
         snakePaint.setColor(Color.GREEN);
-        wallPaint.setColor(Color.BLUE);
-        foodPaint.setColor(Color.RED);
 
         snakeHead = ContextCompat.getDrawable(context,R.mipmap.snake_head_foreground);
         mouse = ContextCompat.getDrawable(context,R.drawable.mouse);
@@ -156,17 +149,6 @@ public class SnakeGameView extends View implements SensorEventListener {
         super.onDraw(canvas);
         postInvalidateOnAnimation(); // automatically invalidate every frame so we get continuous playback
 
-        // TEMPORARY CODE
-//        if (hasGameEnded)
-//        {
-//            frames++;
-//            if (frames > 1000) {
-//                finishActivity();
-//            }
-//            return;
-//        }
-        // TEMPORARY CODE
-
         canvas.drawText("Score: " + snakeGame.getScore(), spToPx(displayMetrics.widthPixels / 4f), spToPx(20.0f),  scorePaint);
 
         if (snakeGame.update())
@@ -179,8 +161,8 @@ public class SnakeGameView extends View implements SensorEventListener {
             }
 
             canvas.save();
-            //canvas.rotate((float)snakeGame.getMovementDirection(),);
-            canvas.translate(spToPx(0),spToPx(16));
+            canvas.rotate((float)snakeGame.getMovementDirection());
+            // canvas.translate(spToPx(0),spToPx(16));
             PointF head = snakeGame.getSnakeBodyLocations().get(0);
             drawDrawable(snakeHead, canvas, head, Snake.BODY_PIECE_SIZE_DP * 3);
 
@@ -188,12 +170,10 @@ public class SnakeGameView extends View implements SensorEventListener {
 
             for (PointF w: snakeGame.getWallLocations())
             {
-//                canvas.drawCircle(w.x, w.y, dpToPx(SnakeGame.WALL_SIZE_DP), wallPaint);
                 drawDrawable(grenade, canvas, w, SnakeGame.WALL_SIZE_DP * 2);
             }
 
             PointF foodLocation = snakeGame.getFoodLocation();
-            //canvas.drawCircle(foodLocation.x, foodLocation.y, dpToPx(SnakeGame.FOOD_SIZE_DP), foodPaint);
             drawDrawable(mouse, canvas, foodLocation, SnakeGame.FOOD_SIZE_DP * 2);
         }
         else
@@ -216,6 +196,7 @@ public class SnakeGameView extends View implements SensorEventListener {
                 && event.getAction() == MotionEvent.ACTION_MOVE)
         {
             savePreferences();
+            finishActivity();
         }
 
         return true;
@@ -224,8 +205,7 @@ public class SnakeGameView extends View implements SensorEventListener {
     private void savePreferences()
     {
         Activity context = (Activity) getContext();
-        StartActivity.setHighScore(preferences, context, gameDifficulty, 100 /*snakeGame.getScore()*/);
-        hasGameEnded = true;
+        StartActivity.setHighScore(preferences, context, gameDifficulty,snakeGame.getScore());
     }
 
     private void finishActivity() {

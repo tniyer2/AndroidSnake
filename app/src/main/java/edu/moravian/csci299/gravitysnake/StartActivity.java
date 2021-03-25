@@ -1,11 +1,8 @@
 package edu.moravian.csci299.gravitysnake;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.lifecycle.ViewModelProvider;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,7 +12,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -41,8 +37,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
-        preferences = getPreferences(Context.MODE_PRIVATE);
-        setHighScore(preferences, this, 0, 78);
+        preferences = getSharedPreferences("snake_game", Context.MODE_PRIVATE);
 
         Button startButton = findViewById(R.id.startButton);
         startButton.setOnClickListener(this);
@@ -75,8 +70,9 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 
         String text = getResources().getStringArray(R.array.level_name_array)[currentLevel];
         levelText.setText(text);
-        int score = getHighScore(preferences, this, currentLevel);
-        highScoreText.setText(String.format(getString(R.string.high_score_text), score));
+
+        int highScore = getHighScore(preferences, this, currentLevel);
+        highScoreText.setText(String.format(getString(R.string.high_score_text), highScore));
     }
 
     /**
@@ -88,7 +84,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         Intent intent = new Intent(this, GameActivity.class);
         intent.putExtra("level", levelSelectBar.getProgress());
-        startActivityForResult(intent, Activity.RESULT_OK);
+        startActivity(intent);
     }
 
     /**
@@ -105,17 +101,8 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
-    {
-        super.onActivityResult(requestCode, resultCode, data);
-//        assert data != null;
-
-        int level = data.getIntExtra("level", 0);
-        int score = data.getIntExtra("score", 0);
-        Log.d("StartActivity", "OnActivityResult, level: " + level);
-        Log.d("StartActivity", "OnActivityResult, score: " + score);
-
-        setHighScore(preferences, this, level, score);
+    protected void onResume() {
+        super.onResume();
         setLevelAndScoreText();
     }
 
