@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import java.io.IOException;
 
@@ -23,10 +24,12 @@ import java.io.IOException;
  * This class is the StartActivity. It gets created in the beginning activity_start layout.
  */
 public class StartActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
-    private GameModel gameModel;
     private MediaPlayer mediaPlayer;
     private SharedPreferences preferences;
 
+    private SeekBar levelSelectBar;
+    private TextView levelText;
+    private TextView highScoreText;
 
     /**
      * Initializes gameModel, the start Button, and the level select SeekBar.
@@ -37,27 +40,17 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
-        gameModel = (new ViewModelProvider(this)).get(GameModel.class);
-
-
-
         preferences = getPreferences(Context.MODE_PRIVATE);
-        for (int i = 0; i < gameModel.NUM_LEVELS; i++)
-        {
-            gameModel.setHighScore(i, preferences.getInt(String.format(getString(R.string.high_score_preference_key), i), 0));
-        }
-
-        Log.d("From StartActivity", "Before: " + gameModel.getHighScore(3));
-        gameModel.setHighScore(3, gameModel.getHighScore(3) + 1);
-        Log.d("From StartActivity", "After: " + gameModel.getHighScore(3));
 
         Button startButton = findViewById(R.id.startButton);
         startButton.setOnClickListener(this);
 
-        SeekBar bar = findViewById(R.id.levelSelectBar);
-        bar.setOnSeekBarChangeListener(this);
-        gameModel.setCurrentLevel(bar.getProgress());
+        levelSelectBar = findViewById(R.id.levelSelectBar);
+        levelSelectBar.setOnSeekBarChangeListener(this);
 
+        levelText = findViewById(R.id.levelText);
+        highScoreText = findViewById(R.id.highScoreText);
+        setLevelAndScoreText();
 
         //set up for music, mediaPlayer and music switch
         mediaPlayer = new MediaPlayer();
@@ -76,9 +69,17 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
                 }
             }
         });
-
     }
 
+    private void setLevelAndScoreText()
+    {
+        int currentLevel = levelSelectBar.getProgress();
+
+        String text = getResources().getStringArray(R.array.level_name_array)[currentLevel];
+        levelText.setText(text);
+        int score = getHighScore(currentLevel);
+        highScoreText.setText(String.format(getString(R.string.high_score_text), score));
+    }
 
     /** When the activity stops, we stop the media player. */
     @Override
@@ -86,21 +87,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         super.onStop();
         mediaPlayer.release();
         mediaPlayer = null;
-    }
-
-    @Override
-    protected void onDestroy()
-    {
-        super.onDestroy();
-
-        Log.d("From StartActivity", "In OnDestroy: " + gameModel.getHighScore(3));
-
-        SharedPreferences.Editor editor = preferences.edit();
-        for (int i = 0; i < gameModel.NUM_LEVELS; i++)
-        {
-            editor.putInt(String.format(getString(R.string.high_score_preference_key), i), gameModel.getHighScore(i));
-        }
-        editor.apply();
     }
 
     /**
@@ -111,7 +97,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onClick(View v) {
         Intent intent = new Intent(this, GameActivity.class);
-        intent.putExtra("level", gameModel.getCurrentLevel());
+        intent.putExtra("level", levelSelectBar.getProgress());
         startActivity(intent);
     }
 
@@ -126,7 +112,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
     {
-        gameModel.setCurrentLevel(progress);
+        setLevelAndScoreText();
     }
 
     /** Does nothing but must be provided. */
@@ -138,11 +124,31 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     public void onStopTrackingTouch(SeekBar seekBar) {}
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
+    {
         super.onActivityResult(requestCode, resultCode, data);
         assert data != null;
-        gameModel.setHighScore(data.getIntExtra("level", 0), data.getIntExtra("score", 0));
 
+        int level = data.getIntExtra("level", 0);
+        int score = data.getIntExtra("score", 0);
+        if (score > getHighScore(level))
+        {
+            setHighScore(level, score);
+        }
+    }
+
+    private int getHighScore(int level) {
+        String key = String.format(getString(R.string.high_score_preference_key), level);
+
+        return preferences.getInt(key, 0);
+    }
+
+    private void setHighScore(int level, int score) {
+        String key = String.format(getString(R.string.high_score_preference_key), level);
+
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt(key, score);
+        editor.apply();
     }
 
     private void setAudioResource() {
