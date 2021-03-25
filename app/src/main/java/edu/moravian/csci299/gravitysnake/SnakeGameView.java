@@ -161,10 +161,10 @@ public class SnakeGameView extends View implements SensorEventListener {
             }
 
             canvas.save();
-            canvas.rotate((float)snakeGame.getMovementDirection());
             // canvas.translate(spToPx(0),spToPx(16));
             PointF head = snakeGame.getSnakeBodyLocations().get(0);
             drawDrawable(snakeHead, canvas, head, Snake.BODY_PIECE_SIZE_DP * 3);
+            canvas.rotate((float)Math.toDegrees(snakeGame.getMovementDirection()) - 90f , head.x, head.y);
 
             canvas.restore();
 
