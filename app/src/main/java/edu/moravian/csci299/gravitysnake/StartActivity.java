@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -73,7 +74,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 
         String text = getResources().getStringArray(R.array.level_name_array)[currentLevel];
         levelText.setText(text);
-        int score = getHighScore(currentLevel);
+        int score = getHighScore(preferences, this, currentLevel);
         highScoreText.setText(String.format(getString(R.string.high_score_text), score));
     }
 
@@ -86,7 +87,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         Intent intent = new Intent(this, GameActivity.class);
         intent.putExtra("level", levelSelectBar.getProgress());
-        startActivity(intent);
+        startActivityForResult(intent, Activity.RESULT_OK);
     }
 
     /**
@@ -106,27 +107,27 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
     {
         super.onActivityResult(requestCode, resultCode, data);
-        assert data != null;
+//        assert data != null;
 
         int level = data.getIntExtra("level", 0);
         int score = data.getIntExtra("score", 0);
         Log.d("StartActivity", "OnActivityResult, level: " + level);
         Log.d("StartActivity", "OnActivityResult, score: " + score);
 
-        setHighScore(level, score);
+        setHighScore(preferences, this, level, score);
         setLevelAndScoreText();
     }
 
-    private int getHighScore(int level) {
-        String key = String.format(getString(R.string.high_score_preference_key), level);
+    public static int getHighScore(SharedPreferences preferences, Context context, int level) {
+        String key = String.format(context.getString(R.string.high_score_preference_key), level);
 
         return preferences.getInt(key, 0);
     }
 
-    private void setHighScore(int level, int score) {
-        if (score > getHighScore(level))
+    public static void setHighScore(SharedPreferences preferences, Context context, int level, int score) {
+        if (score > getHighScore(preferences, context, level))
         {
-            String key = String.format(getString(R.string.high_score_preference_key), level);
+            String key = String.format(context.getString(R.string.high_score_preference_key), level);
 
             SharedPreferences.Editor editor = preferences.edit();
             editor.putInt(key, score);

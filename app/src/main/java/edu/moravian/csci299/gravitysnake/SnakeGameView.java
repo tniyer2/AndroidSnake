@@ -3,6 +3,7 @@ package edu.moravian.csci299.gravitysnake;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -28,6 +29,7 @@ import androidx.annotation.Nullable;
  * a few methods to this class.
  */
 public class SnakeGameView extends View implements SensorEventListener {
+    private SharedPreferences preferences;
 
     /** The paints and drawables used for the different parts of the game */
     private final Paint scorePaint = new Paint();
@@ -48,6 +50,7 @@ public class SnakeGameView extends View implements SensorEventListener {
 
     public SnakeGameView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        preferences = ((Activity)context).getPreferences(Context.MODE_PRIVATE);
 
         // Get the metrics for the display so we can later convert between dp, sp, and px
         displayMetrics = context.getResources().getDisplayMetrics();
@@ -169,12 +172,8 @@ public class SnakeGameView extends View implements SensorEventListener {
     }
 
     private void finishActivity() {
-        Intent intent = new Intent();
-        intent.putExtra("level", gameDifficulty);
-        intent.putExtra("score", snakeGame.getScore());
-
         Activity context = (Activity) getContext();
-        context.setResult(Activity.RESULT_OK, intent);
+        StartActivity.setHighScore(preferences, context, gameDifficulty, snakeGame.getScore());
         context.finish();
     }
 

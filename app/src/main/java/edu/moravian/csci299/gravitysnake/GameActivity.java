@@ -3,7 +3,9 @@ package edu.moravian.csci299.gravitysnake;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -25,7 +27,6 @@ import android.view.WindowManager;
  */
 public class GameActivity extends AppCompatActivity implements SensorEventListener {
     private SnakeGameView snakeGameView;
-
     private SensorManager sensorManager;
     private Sensor gravitySensor;
 
