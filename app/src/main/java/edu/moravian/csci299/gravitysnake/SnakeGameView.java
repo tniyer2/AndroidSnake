@@ -31,6 +31,9 @@ import androidx.annotation.Nullable;
 public class SnakeGameView extends View implements SensorEventListener {
     private SharedPreferences preferences;
 
+    private boolean hasGameEnded = false;
+    private int frames = 0;
+
     /** The paints and drawables used for the different parts of the game */
     private final Paint scorePaint = new Paint();
     private final Paint snakePaint = new Paint();
@@ -136,6 +139,17 @@ public class SnakeGameView extends View implements SensorEventListener {
         super.onDraw(canvas);
         postInvalidateOnAnimation(); // automatically invalidate every frame so we get continuous playback
 
+        // TEMPORARY CODE
+        if (hasGameEnded)
+        {
+            frames++;
+            if (frames > 1000) {
+                finishActivity();
+            }
+            return;
+        }
+        // TEMPORARY CODE
+
         canvas.drawText("Score: " + snakeGame.getScore(), spToPx(displayMetrics.widthPixels / 4f), spToPx(20.0f),  scorePaint);
 
         if (snakeGame.update())
@@ -156,7 +170,7 @@ public class SnakeGameView extends View implements SensorEventListener {
         }
         else
         {
-            finishActivity();
+            savePreferences();
         }
     }
 
@@ -165,15 +179,21 @@ public class SnakeGameView extends View implements SensorEventListener {
         PointF point = new PointF(event.getX(), event.getY());
         if (!snakeGame.touched(point))
         {
-            finishActivity();
+            savePreferences();
         }
 
         return true;
     }
 
+    private void savePreferences()
+    {
+        Activity context = (Activity) getContext();
+        StartActivity.setHighScore(preferences, context, gameDifficulty, 100 /*snakeGame.getScore()*/);
+        hasGameEnded = true;
+    }
+
     private void finishActivity() {
         Activity context = (Activity) getContext();
-        StartActivity.setHighScore(preferences, context, gameDifficulty, snakeGame.getScore());
         context.finish();
     }
 

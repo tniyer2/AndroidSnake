@@ -42,6 +42,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         setContentView(R.layout.activity_start);
 
         preferences = getPreferences(Context.MODE_PRIVATE);
+        setHighScore(preferences, this, 0, 78);
 
         Button startButton = findViewById(R.id.startButton);
         startButton.setOnClickListener(this);
