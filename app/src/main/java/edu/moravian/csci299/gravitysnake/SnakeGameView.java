@@ -1,5 +1,6 @@
 package edu.moravian.csci299.gravitysnake;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -8,15 +9,18 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 /**
  * The custom View for the Snake Game. This handles the user interaction and
@@ -40,8 +44,13 @@ public class SnakeGameView extends View implements SensorEventListener {
     private final Paint wallPaint = new Paint();
     private final Paint foodPaint = new Paint();
 
+
     /** The metrics about the display to convert from dp and sp to px */
     private final DisplayMetrics displayMetrics;
+
+    Drawable snakeHead;// clean up
+    Drawable mouse;
+    Drawable grenade;
 
     /** The snake game for the logic behind this view */
     private final SnakeGame snakeGame;
@@ -76,6 +85,13 @@ public class SnakeGameView extends View implements SensorEventListener {
         snakePaint.setColor(Color.GREEN);
         wallPaint.setColor(Color.BLUE);
         foodPaint.setColor(Color.RED);
+
+        snakeHead = ContextCompat.getDrawable(context,R.mipmap.snake_head_foreground);
+        mouse = ContextCompat.getDrawable(context,R.drawable.mouse);
+        grenade = ContextCompat.getDrawable(context,R.drawable.grenade);
+
+        this.setBackgroundResource(R.drawable.sand);
+
     }
 
     /**
@@ -112,7 +128,7 @@ public class SnakeGameView extends View implements SensorEventListener {
         snakeGame.setStartingLength(difficulty * 20);
         snakeGame.setMovementDirection(270.0);
         snakeGame.setSpeedIncreasePerFood(difficulty * 0.1);
-        snakeGame.setWallPlacementProbability(1.0f / 60.0f);
+        snakeGame.setWallPlacementProbability((1.0f / 200.0f) * difficulty);
         snakeGame.setLengthIncreasePerFood(difficulty);
 
     }
@@ -136,18 +152,19 @@ public class SnakeGameView extends View implements SensorEventListener {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        boolean snakeHeadDrawn = false;
         super.onDraw(canvas);
         postInvalidateOnAnimation(); // automatically invalidate every frame so we get continuous playback
 
         // TEMPORARY CODE
-        if (hasGameEnded)
-        {
-            frames++;
-            if (frames > 1000) {
-                finishActivity();
-            }
-            return;
-        }
+//        if (hasGameEnded)
+//        {
+//            frames++;
+//            if (frames > 1000) {
+//                finishActivity();
+//            }
+//            return;
+//        }
         // TEMPORARY CODE
 
         canvas.drawText("Score: " + snakeGame.getScore(), spToPx(displayMetrics.widthPixels / 4f), spToPx(20.0f),  scorePaint);
@@ -156,28 +173,47 @@ public class SnakeGameView extends View implements SensorEventListener {
         {
             for (PointF p: snakeGame.getSnakeBodyLocations())
             {
+
                 canvas.drawCircle(p.x, p.y, dpToPx(Snake.BODY_PIECE_SIZE_DP), snakePaint);
+
             }
+
+            canvas.save();
+            //canvas.rotate((float)snakeGame.getMovementDirection(),);
+            canvas.translate(spToPx(0),spToPx(16));
+            PointF head = snakeGame.getSnakeBodyLocations().get(0);
+            drawDrawable(snakeHead, canvas, head, Snake.BODY_PIECE_SIZE_DP * 3);
+
+            canvas.restore();
 
             for (PointF w: snakeGame.getWallLocations())
             {
-                float diff = dpToPx(SnakeGame.WALL_SIZE_DP/2);
-                canvas.drawRect(w.x - diff, w.y - diff, w.x + diff, w.y + diff, wallPaint);
+//                canvas.drawCircle(w.x, w.y, dpToPx(SnakeGame.WALL_SIZE_DP), wallPaint);
+                drawDrawable(grenade, canvas, w, SnakeGame.WALL_SIZE_DP * 2);
             }
 
             PointF foodLocation = snakeGame.getFoodLocation();
-            canvas.drawCircle(foodLocation.x, foodLocation.y, dpToPx(SnakeGame.FOOD_SIZE_DP), foodPaint);
+            //canvas.drawCircle(foodLocation.x, foodLocation.y, dpToPx(SnakeGame.FOOD_SIZE_DP), foodPaint);
+            drawDrawable(mouse, canvas, foodLocation, SnakeGame.FOOD_SIZE_DP * 2);
         }
         else
         {
             savePreferences();
+            finishActivity();
         }
+    }
+
+    public void drawDrawable(Drawable drawable, Canvas canvas, PointF p, float radius){
+        float size = dpToPx(radius);
+        drawable.setBounds((int)(p.x - size), (int)(p.y - size), (int)(p.x + size), (int)(p.y + size));
+        drawable.draw(canvas);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         PointF point = new PointF(event.getX(), event.getY());
-        if (!snakeGame.touched(point))
+        if (!snakeGame.touched(point) && event.getAction() == MotionEvent.ACTION_DOWN
+                && event.getAction() == MotionEvent.ACTION_MOVE)
         {
             savePreferences();
         }
