@@ -55,19 +55,15 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         //set up for music, mediaPlayer and music switch
         mediaPlayer = new MediaPlayer();
         setAudioResource();
+
         SwitchCompat musicSwitch = findViewById(R.id.musicSwitch);
         musicSwitch.setChecked(true);
         musicSwitch.setText(R.string.music);
-        musicSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    mediaPlayer.start();
-                }
-                else{
-                    mediaPlayer.pause();
-                }
-            }
+        musicSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked)
+                mediaPlayer.start();
+            else
+                mediaPlayer.pause();
         });
     }
 
@@ -79,14 +75,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         levelText.setText(text);
         int score = getHighScore(currentLevel);
         highScoreText.setText(String.format(getString(R.string.high_score_text), score));
-    }
-
-    /** When the activity stops, we stop the media player. */
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mediaPlayer.release();
-        mediaPlayer = null;
     }
 
     /**
@@ -101,7 +89,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         startActivity(intent);
     }
 
-
     /**
      * Called when level select SeekBar's progress changes.
      * Sets the gameModel's current level to the new progress.
@@ -115,14 +102,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         setLevelAndScoreText();
     }
 
-    /** Does nothing but must be provided. */
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {}
-
-    /** Does nothing but must be provided. */
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {}
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
     {
@@ -131,10 +110,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
 
         int level = data.getIntExtra("level", 0);
         int score = data.getIntExtra("score", 0);
-        if (score > getHighScore(level))
-        {
-            setHighScore(level, score);
-        }
+        setHighScore(level, score);
     }
 
     private int getHighScore(int level) {
@@ -144,11 +120,14 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void setHighScore(int level, int score) {
-        String key = String.format(getString(R.string.high_score_preference_key), level);
+        if (score > getHighScore(level))
+        {
+            String key = String.format(getString(R.string.high_score_preference_key), level);
 
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt(key, score);
-        editor.apply();
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt(key, score);
+            editor.apply();
+        }
     }
 
     private void setAudioResource() {
@@ -165,4 +144,12 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
             }
         }
     }
+
+    /** Does nothing but must be provided. */
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {}
+
+    /** Does nothing but must be provided. */
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {}
 }

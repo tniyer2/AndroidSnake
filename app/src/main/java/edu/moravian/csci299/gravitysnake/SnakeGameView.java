@@ -133,6 +133,8 @@ public class SnakeGameView extends View implements SensorEventListener {
         super.onDraw(canvas);
         postInvalidateOnAnimation(); // automatically invalidate every frame so we get continuous playback
 
+        canvas.drawText("Score: " + snakeGame.getScore(), spToPx(displayMetrics.widthPixels / 4f), spToPx(20.0f),  scorePaint);
+
         if (snakeGame.update())
         {
             for (PointF p: snakeGame.getSnakeBodyLocations())
@@ -149,7 +151,10 @@ public class SnakeGameView extends View implements SensorEventListener {
             PointF foodLocation = snakeGame.getFoodLocation();
             canvas.drawCircle(foodLocation.x, foodLocation.y, dpToPx(SnakeGame.FOOD_SIZE_DP), foodPaint);
         }
-        canvas.drawText("Score: " + snakeGame.getScore(), spToPx(displayMetrics.widthPixels/4f), spToPx(20.0f),  scorePaint);
+        else
+        {
+            finishActivity();
+        }
     }
 
     @Override
@@ -157,15 +162,20 @@ public class SnakeGameView extends View implements SensorEventListener {
         PointF point = new PointF(event.getX(), event.getY());
         if (!snakeGame.touched(point))
         {
-            Activity context = (Activity) getContext();
-            Intent intent = new Intent();
-            intent.putExtra("level", gameDifficulty);
-            intent.putExtra("score", snakeGame.getScore());
-            context.setResult(Activity.RESULT_OK, intent);
-            context.finish();
+            finishActivity();
         }
 
         return true;
+    }
+
+    private void finishActivity() {
+        Intent intent = new Intent();
+        intent.putExtra("level", gameDifficulty);
+        intent.putExtra("score", snakeGame.getScore());
+
+        Activity context = (Activity) getContext();
+        context.setResult(Activity.RESULT_OK, intent);
+        context.finish();
     }
 
     /**
