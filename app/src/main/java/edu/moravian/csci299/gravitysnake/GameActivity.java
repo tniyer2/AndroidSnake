@@ -30,7 +30,11 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager sensorManager;
     private Sensor gravitySensor;
 
-
+    /**
+     * Gets sensorManager and gravitySensor.
+     * Passes the difficulty from intent to snakeGameView.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,8 +52,7 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
     }
 
     /**
-     * When this method is called the gravity sensor is registered by the
-     * SensorManager
+     * When this method is called the gravity sensor is registered by the SensorManager.
      */
     @Override
     protected void onResume()
@@ -59,8 +62,7 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
     }
 
     /**
-     * When this method is called the gravity sensor is unregistered by the
-     * SensorManager
+     * When this method is called the gravity sensor is unregistered by the SensorManager.
      */
     @Override
     protected void onPause()
@@ -69,6 +71,7 @@ public class GameActivity extends AppCompatActivity implements SensorEventListen
         super.onPause();
     }
 
+    /** Does nothing but must be provided. */
     @Override
     public void onSensorChanged(SensorEvent event)
     {

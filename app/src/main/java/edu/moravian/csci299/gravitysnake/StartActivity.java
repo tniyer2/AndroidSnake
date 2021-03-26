@@ -29,7 +29,8 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     private TextView highScoreText;
 
     /**
-     * Initializes gameModel, the start Button, and the level select SeekBar.
+     * Initializes preferences, the start Button, the level select SeekBar,
+     * and the mediaPlayer for the background music.
      * @param savedInstanceState
      */
     @Override
@@ -64,6 +65,9 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         });
     }
 
+    /**
+     * Updates the level and score text.
+     */
     private void setLevelAndScoreText()
     {
         int currentLevel = levelSelectBar.getProgress();
@@ -76,7 +80,7 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     }
 
     /**
-     * Called when the start Button was clicked.
+     * Called when the start Button is clicked.
      * Sends an intent to start GameActivity with extra 'level' being the level chosen.
      * @param v View that was clicked.
      */
@@ -88,10 +92,9 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
     }
 
     /**
-     * Called when level select SeekBar's progress changes.
-     * Sets the gameModel's current level to the new progress.
-     * @param seekBar SeekBar that had it's progress changed.
-     * @param progress number that is the new progress.
+     * Updates level and score text when the level select SeekBar's progress changes.
+     * @param seekBar the SeekBar that had it's progress changed.
+     * @param progress the new progress value.
      * @param fromUser true if the progress change was initiated by the user.
      */
     @Override
@@ -100,18 +103,36 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         setLevelAndScoreText();
     }
 
+    /**
+     * Updates level and score text when activity resumes.
+     */
     @Override
     protected void onResume() {
         super.onResume();
         setLevelAndScoreText();
     }
 
+    /**
+     * Returns the high score for a level from a SharedPreferences.
+     * @param preferences where you want to get the high score from.
+     * @param context the context this function is being called from.
+     * @param level the level you want the high score of.
+     * @return The high score for the level you chose.
+     */
     public static int getHighScore(SharedPreferences preferences, Context context, int level) {
         String key = String.format(context.getString(R.string.high_score_preference_key), level);
 
         return preferences.getInt(key, 0);
     }
 
+    /**
+     * Saves a given score for a level as the high score if it is
+     * greater than the current existing high score.
+     * @param preferences where you want to save the high score to.
+     * @param context the context this function is being called from.
+     * @param level the level to set the high score of.
+     * @param score the new score.
+     */
     public static void setHighScore(SharedPreferences preferences, Context context, int level, int score) {
         if (score > getHighScore(preferences, context, level))
         {
@@ -123,6 +144,9 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    /**
+     * Preparing the audio so that music can be played.
+     */
     private void setAudioResource() {
         AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.booamf);
         if (afd != null) {

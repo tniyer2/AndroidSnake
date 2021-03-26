@@ -1,9 +1,7 @@
 package edu.moravian.csci299.gravitysnake;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -15,7 +13,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -50,11 +47,17 @@ public class SnakeGameView extends View implements SensorEventListener {
     /** The snake game for the logic behind this view */
     private final SnakeGame snakeGame;
 
-    private int gameDifficulty;
+    private int level;
 
     // Required constructors for making your own view that can be placed in a layout
     public SnakeGameView(Context context) { this(context, null);  }
 
+    /**
+     * Initializes preferences, displayMetrics, snakeGame, and any Paint fields.
+     * Initializes Drawable fields and sets background.
+     * @param context
+     * @param attrs
+     */
     public SnakeGameView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         preferences = ((Activity)context).getSharedPreferences("snake_game", Context.MODE_PRIVATE);
@@ -84,7 +87,6 @@ public class SnakeGameView extends View implements SensorEventListener {
         grenade = ContextCompat.getDrawable(context,R.drawable.grenade);
 
         this.setBackgroundResource(R.drawable.sand);
-
     }
 
     /**
@@ -111,11 +113,12 @@ public class SnakeGameView extends View implements SensorEventListener {
     public float spToPx(float sp) { return sp * displayMetrics.scaledDensity; }
 
     /**
+     * Sets variables in snakeGame based on the difficulty.
      * @param difficulty the new difficulty for the game
      */
     public void setDifficulty(int difficulty) {
         // TODO: may need to set lots of things here to change the game's difficulty. Subject to change
-        gameDifficulty = difficulty;
+        level = difficulty;
         difficulty ++;
         snakeGame.setInitialSpeed(difficulty * 1.0);
         snakeGame.setStartingLength(difficulty * 20);
@@ -143,6 +146,11 @@ public class SnakeGameView extends View implements SensorEventListener {
         invalidate();
     }
 
+    /**
+     * Draws all objects in the game.
+     * Draws the snake, walls, food, and the score.
+     * @param canvas
+     */
     @Override
     protected void onDraw(Canvas canvas) {
         boolean snakeHeadDrawn = false;
@@ -155,13 +163,10 @@ public class SnakeGameView extends View implements SensorEventListener {
         {
             for (PointF p: snakeGame.getSnakeBodyLocations())
             {
-
                 canvas.drawCircle(p.x, p.y, dpToPx(Snake.BODY_PIECE_SIZE_DP), snakePaint);
-
             }
 
             canvas.save();
-            // canvas.translate(spToPx(0),spToPx(16));
             PointF head = snakeGame.getSnakeBodyLocations().get(0);
             drawDrawable(snakeHead, canvas, head, Snake.BODY_PIECE_SIZE_DP * 3);
             canvas.rotate((float)Math.toDegrees(snakeGame.getMovementDirection()) - 90f , head.x, head.y);
@@ -178,36 +183,55 @@ public class SnakeGameView extends View implements SensorEventListener {
         }
         else
         {
-            savePreferences();
+            saveHighScore();
             finishActivity();
         }
     }
 
+    /**
+     * Draws a drawable on the canvas.
+     * @param drawable Drawable to draw.
+     * @param canvas Canvsas to draw on.
+     * @param p what point to draw at.
+     * @param radius radius for bounds.
+     */
     public void drawDrawable(Drawable drawable, Canvas canvas, PointF p, float radius){
         float size = dpToPx(radius);
         drawable.setBounds((int)(p.x - size), (int)(p.y - size), (int)(p.x + size), (int)(p.y + size));
         drawable.draw(canvas);
     }
 
+    /**
+     * ends the activity if the snake it touched.
+     * Updates the snakeGame every time user touches screen.
+     * @param event the event.
+     * @return always true.
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         PointF point = new PointF(event.getX(), event.getY());
         if (!snakeGame.touched(point) && event.getAction() == MotionEvent.ACTION_DOWN
                 && event.getAction() == MotionEvent.ACTION_MOVE)
         {
-            savePreferences();
+            saveHighScore();
             finishActivity();
         }
 
         return true;
     }
 
-    private void savePreferences()
+    /**
+     * Save the current score if it is a high score.
+     */
+    private void saveHighScore()
     {
         Activity context = (Activity) getContext();
-        StartActivity.setHighScore(preferences, context, gameDifficulty,snakeGame.getScore());
+        StartActivity.setHighScore(preferences, context, level, snakeGame.getScore());
     }
 
+    /**
+     * Ends the current activity.
+     */
     private void finishActivity() {
         Activity context = (Activity) getContext();
         context.finish();
